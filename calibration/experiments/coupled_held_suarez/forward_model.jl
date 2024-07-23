@@ -46,13 +46,11 @@ pkg_dir = pkgdir(ClimaCoupler)
 =#
 
 ## helpers for component models
-include("components/atmosphere/climaatmos.jl")
-
+include("../../../experiments/ClimaEarth/components/atmosphere/climaatmos.jl")
 ## helpers for user-specified IO
-include("user_io/user_diagnostics.jl")
-include("user_io/user_logging.jl")
-
-include("user_io/io_helpers.jl")
+include("../../../experiments/ClimaEarth/user_io/user_diagnostics.jl")
+include("../../../experiments/ClimaEarth/user_io/user_logging.jl")
+include("../../../experiments/ClimaEarth/user_io/io_helpers.jl")
 
 #=
 ### Setup simulation parameters
@@ -352,6 +350,3 @@ function solve_coupler!(cs)
 
     return nothing
 end
-
-## run the coupled simulation
-#solve_coupler!(cs);
