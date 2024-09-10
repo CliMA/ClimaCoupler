@@ -86,6 +86,27 @@ Return the floating point type backing `T`: `T` can either be an object or a typ
 float_type(::CoupledSimulation{FT}) where {FT} = FT
 
 """
+    current_date(cs::CoupledSimulation, t)
+
+Return the model date at the current timestep.
+
+# Arguments
+- `cs`: [CoupledSimulation] containing info about the simulation
+- `t`: number of seconds since simulation began
+"""
+current_date(cs::CoupledSimulation, t) = cs.dates.date0[1] + Dates.Second(t)
+
+"""
+    update_firstdayofmonth!(cs::Interfacer.CoupledSimulation, _)
+
+This function updates the first of the month reference date.
+"""
+function update_firstdayofmonth!(cs, _)
+    cs.dates.first_day_of_month[1] = cs.dates.first_day_of_month[1] + Dates.Month(1)
+    @info("update_firstdayofmonth! at $(cs.dates.date)")
+end
+
+"""
     ComponentModelSimulation
 
 An abstract type encompassing all component model (and model stub) simulations.

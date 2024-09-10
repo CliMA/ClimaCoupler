@@ -32,7 +32,7 @@ import ClimaCoupler:
     FluxCalculator,
     Interfacer,
     Regridder,
-    TimeManager,
+    CallbackManager,
     Utilities
 
 pkg_dir = pkgdir(ClimaCoupler)
@@ -175,7 +175,7 @@ land_mask_data = artifact_data(mask_dataset_path(), "seamask")
 
 ## dates
 date0 = date = Dates.DateTime(start_date, Dates.dateformat"yyyymmdd")
-dates = (; date = [date], date0 = [date0], date1 = [Dates.firstdayofmonth(date0)], new_month = [false])
+dates = (; date = [date], date0 = [date0], first_day_of_month = [Dates.firstdayofmonth(date0)])
 
 
 #=
@@ -284,20 +284,20 @@ model_sims = (atmos_sim = atmos_sim, ocean_sim = ocean_sim);
 ## Initialize Callbacks
 =#
 
-checkpoint_cb = TimeManager.HourlyCallback(
+checkpoint_cb = CallbackManager.HourlyCallback(
     dt = FT(480),
     func = checkpoint_sims,
     ref_date = [dates.date[1]],
     active = hourly_checkpoint,
 ) # 20 days
-update_firstdayofmonth!_cb = TimeManager.MonthlyCallback(
+update_firstdayofmonth!_cb = CallbackManager.MonthlyCallback(
     dt = FT(1),
-    func = TimeManager.update_firstdayofmonth!,
-    ref_date = [dates.date1[1]],
+    func = Interfacer.update_firstdayofmonth!,
+    ref_date = [dates.first_day_of_month[1]],
     active = true,
 )
 dt_water_albedo = parse(FT, filter(x -> !occursin(x, "hours"), dt_rad))
-albedo_cb = TimeManager.HourlyCallback(
+albedo_cb = CallbackManager.HourlyCallback(
     dt = dt_water_albedo,
     func = FluxCalculator.water_albedo_from_atmosphere!,
     ref_date = [dates.date[1]],
@@ -389,17 +389,17 @@ function solve_coupler!(cs)
     ## step in time
     for t in ((tspan[begin] + Δt_cpl):Δt_cpl:tspan[end])
 
-        cs.dates.date[1] = TimeManager.current_date(cs, t)
+        cs.dates.date[1] = Interfacer.current_date(cs, t)
 
         ## print date on the first of month
-        if cs.dates.date[1] >= cs.dates.date1[1]
+        if cs.dates.date[1] >= cs.dates.first_day_of_month[1]
             ClimaComms.iamroot(comms_ctx) && @show(cs.dates.date[1])
         end
 
         ClimaComms.barrier(comms_ctx)
 
         ## update water albedo from wind at dt_water_albedo (this will be extended to a radiation callback from the coupler)
-        TimeManager.trigger_callback!(cs, cs.callbacks.water_albedo)
+        CallbackManager.trigger_callback!(cs.callbacks.water_albedo, cs.dates.date[1])
 
         ## run component models sequentially for one coupling timestep (Δt_cpl)
         FieldExchanger.update_model_sims!(cs.model_sims, cs.fields, cs.turbulent_fluxes)
@@ -414,10 +414,10 @@ function solve_coupler!(cs)
         FieldExchanger.import_atmos_fields!(cs.fields, cs.model_sims, cs.boundary_space, cs.turbulent_fluxes) # radiative and/or turbulent
 
         ## callback to update the fist day of month if needed
-        TimeManager.trigger_callback!(cs, cs.callbacks.update_firstdayofmonth!)
+        CallbackManager.trigger_callback!(cs.callbacks.update_firstdayofmonth!, cs.dates.date[1])
 
         ## callback to checkpoint model state
-        TimeManager.trigger_callback!(cs, cs.callbacks.checkpoint)
+        CallbackManager.trigger_callback!(cs.callbacks.checkpoint, cs.dates.date[1])
 
     end
 
