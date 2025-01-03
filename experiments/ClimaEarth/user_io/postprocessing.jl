@@ -68,7 +68,8 @@ function postprocess_sim(::Type{AMIPMode}, cs, postprocessing_vars)
     end
 
     # Check this because we only want monthly data for making plots
-    if t_end > 84600 * 31 * 3 && output_default_diagnostics
+    if float(t_end) > 84600 * 31 * 3 && output_default_diagnostics
+        include("leaderboard/leaderboard.jl")
         leaderboard_base_path = cs.dirs.artifacts
         compute_leaderboard(leaderboard_base_path, atmos_output_dir)
         compute_pfull_leaderboard(leaderboard_base_path, atmos_output_dir)

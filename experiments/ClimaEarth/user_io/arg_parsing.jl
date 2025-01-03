@@ -58,11 +58,11 @@ function get_coupler_args(config_dict::Dict)
     comms_ctx = Utilities.get_comms_context(config_dict)
 
     # Time information
-    t_end = Float64(Utilities.time_to_seconds(config_dict["t_end"]))
-    t_start = Float64(Utilities.time_to_seconds(config_dict["t_start"]))
     date0 = date = Dates.DateTime(config_dict["start_date"], Dates.dateformat"yyyymmdd")
-    Δt_cpl = Float64(Utilities.time_to_seconds(config_dict["dt_cpl"]))
-    saveat = Float64(Utilities.time_to_seconds(config_dict["dt_save_to_sol"]))
+    t_end = ITime(Float64(Utilities.time_to_seconds(config_dict["t_end"])), epoch = date0)
+    t_start = ITime(Float64(Utilities.time_to_seconds(config_dict["t_start"])), epoch = date0)
+    Δt_cpl = ITime(Float64(Utilities.time_to_seconds(config_dict["dt_cpl"])), epoch = date0)
+    saveat = ITime(Float64(Utilities.time_to_seconds(config_dict["dt_save_to_sol"])), epoch = date0)
     component_dt_dict = config_dict["component_dt_dict"]
 
     # Checkpointing information
@@ -216,7 +216,7 @@ function parse_component_dts!(config_dict)
 
     # Specify component model names
     component_dt_names = ["dt_atmos", "dt_land", "dt_ocean", "dt_seaice"]
-    component_dt_dict = Dict{String, Float64}()
+    component_dt_dict = Dict{String, ITime}()
     # check if all component dt's are specified
     if all(key -> !isnothing(config_dict[key]), component_dt_names)
         # when all component dt's are specified, ignore the dt field
@@ -227,7 +227,7 @@ function parse_component_dts!(config_dict)
         for key in component_dt_names
             component_dt = Float64(Utilities.time_to_seconds(config_dict[key]))
             @assert isapprox(Δt_cpl % component_dt, 0.0) "Coupler dt must be divisible by all component dt's\n dt_cpl = $Δt_cpl\n $key = $component_dt"
-            component_dt_dict[key] = component_dt
+            component_dt_dict[key] = ITime(component_dt)
         end
     else
         # when not all component dt's are specified, use the dt field
@@ -237,7 +237,7 @@ function parse_component_dts!(config_dict)
                 @warn "Removing $key from config in favor of dt because not all component dt's are specified"
             end
             delete!(config_dict, key)
-            component_dt_dict[key] = Float64(Utilities.time_to_seconds(config_dict["dt"]))
+            component_dt_dict[key] = ITime(Float64(Utilities.time_to_seconds(config_dict["dt"])))
         end
     end
     config_dict["component_dt_dict"] = component_dt_dict

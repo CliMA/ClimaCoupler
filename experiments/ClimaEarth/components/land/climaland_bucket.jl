@@ -50,19 +50,19 @@ Initializes the bucket model variables.
 """
 function bucket_init(
     ::Type{FT},
-    tspan::Tuple{Float64, Float64},
+    tspan::Tuple{ITime, ITime},
     config::String,
     albedo_type::String,
     land_initial_condition::String,
     land_temperature_anomaly::String,
     output_dir::String;
     space,
-    dt::Float64,
-    saveat::Float64,
+    dt::ITime,
+    saveat::ITime,
     area_fraction,
     stepper = CTS.RK4(),
     date_ref::Dates.DateTime,
-    t_start::Float64,
+    t_start::ITime,
     energy_check::Bool,
     surface_elevation,
     use_land_diagnostics::Bool,
@@ -98,7 +98,8 @@ function bucket_init(
     d_soil = FT(3.5) # soil depth
     z_0m = FT(1e-3) # roughness length for momentum over smooth bare soil
     z_0b = FT(1e-3) # roughness length for tracers over smooth bare soil
-    τc = FT(dt) # This is the timescale on which snow exponentially damps to zero, in the case where all
+    # Not sure if this is right?
+    τc = FT(float(dt)) # This is the timescale on which snow exponentially damps to zero, in the case where all
     # the snow would melt in time `τc`. It prevents us from having to specially time step in cases where
     # all the snow melts in a single timestep.
     σS_c = FT(0.2) # critical snow water equivalent

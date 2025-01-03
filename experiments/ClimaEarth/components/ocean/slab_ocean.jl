@@ -93,8 +93,8 @@ function ocean_init(
     ode_function =
         CTS.ClimaODEFunction(; T_exp! = slab_ocean_rhs!, dss! = (Y, p, t) -> CC.Spaces.weighted_dss!(Y, p.dss_buffer))
 
-    problem = SciMLBase.ODEProblem(ode_function, Y, Float64.(tspan), cache)
-    integrator = SciMLBase.init(problem, ode_algo, dt = Float64(dt), saveat = Float64(saveat), adaptive = false)
+    problem = SciMLBase.ODEProblem(ode_function, Y, tspan, cache)
+    integrator = SciMLBase.init(problem, ode_algo, dt = dt, saveat = saveat, adaptive = false)
 
     sim = SlabOceanSimulation(params, Y, space, integrator)
 

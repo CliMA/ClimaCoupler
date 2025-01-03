@@ -6,6 +6,8 @@ of data.
 """
 module TimeManager
 
+import ClimaUtilities
+
 import Dates
 import ..Interfacer
 import ..Utilities: time_to_seconds
@@ -23,6 +25,8 @@ Return the model date at the current timestep.
 - `t`: [Real] number of seconds since simulation began
 """
 current_date(cs::Interfacer.CoupledSimulation, t::Real) = cs.dates.date0[1] + Dates.Second(t)
+
+current_date(cs::Interfacer.CoupledSimulation, t::ClimaUtilities.TimeManager.ITime) = ClimaUtilities.TimeManager.date(t)
 
 """
     strdate_to_datetime(strdate::String)

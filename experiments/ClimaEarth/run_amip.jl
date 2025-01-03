@@ -68,6 +68,8 @@ import Random
 # TODO: Move to ClimaUtilities once we move the Schedules to ClimaUtilities
 import ClimaDiagnostics.Schedules: EveryCalendarDtSchedule
 
+import ClimaUtilities.TimeManager: ITime
+
 pkg_dir = pkgdir(ClimaCoupler)
 
 #=
@@ -283,7 +285,6 @@ if sim_mode <: AMIPMode
         reference_date = date0,
         file_reader_kwargs = (; preprocess_func = (data) -> data + FT(273.15),), ## convert to Kelvin
     )
-
     SST_init = zeros(boundary_space)
     evaluate!(SST_init, SST_timevaryinginput, t_start)
 
@@ -331,7 +332,7 @@ if sim_mode <: AMIPMode
     years = CO2_text[:, 1]
     months = CO2_text[:, 2]
     CO2_dates = Dates.DateTime.(years, months) + Dates.Day(14)
-    CO2_times = period_to_seconds_float.(CO2_dates .- date0)
+    CO2_times = [ITime(period_to_seconds_float(date .- date0), epoch = date0) for date in CO2_dates]
     # convert from ppm to fraction, data is in fourth column of the text file
     CO2_vals = CO2_text[:, 4] .* 10^(-6)
     CO2_timevaryinginput = TimeVaryingInput(CO2_times, CO2_vals;)

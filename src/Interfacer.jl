@@ -44,14 +44,14 @@ abstract type AbstractSimulation{FT} end
 Stores information needed to run a simulation with the coupler.
 """
 struct CoupledSimulation{
-    FT <: Real,
+    FT,
     X,
     D,
     B,
     FV,
     E,
     TS,
-    DTI <: Real,
+    DTI,
     NTMS <: NamedTuple,
     NTM <: NamedTuple,
     NTC <: NamedTuple,

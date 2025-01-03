@@ -78,8 +78,8 @@ function ice_init(::Type{FT}; tspan, saveat, dt, space, area_fraction, thermo_pa
     ode_algo = CTS.ExplicitAlgorithm(stepper)
     ode_function = CTS.ClimaODEFunction(T_exp! = ice_rhs!, dss! = (Y, p, t) -> CC.Spaces.weighted_dss!(Y, p.dss_buffer))
 
-    problem = SciMLBase.ODEProblem(ode_function, Y, Float64.(tspan), (; additional_cache..., params = params))
-    integrator = SciMLBase.init(problem, ode_algo, dt = Float64(dt), saveat = Float64(saveat), adaptive = false)
+    problem = SciMLBase.ODEProblem(ode_function, Y, tspan, (; additional_cache..., params = params))
+    integrator = SciMLBase.init(problem, ode_algo, dt = dt, saveat = saveat, adaptive = false)
 
     sim = PrescribedIceSimulation(params, Y, space, integrator)
 
@@ -171,7 +171,7 @@ function ice_rhs!(du, u, p, _)
     F_conductive = @. params.k_ice / (params.h) * (params.T_base - Y.T_sfc) # fluxes are defined to be positive when upward
     rhs = @. (-F_turb_energy - F_radiative + F_conductive) / (params.h * params.ρ * params.c)
     # If tendencies lead to temperature above freezing, set temperature to freezing
-    @. rhs = min(rhs, (T_freeze - Y.T_sfc) / p.dt)
+    @. rhs = min(rhs, (T_freeze - Y.T_sfc) / float(p.dt))
     # mask out no-ice areas
     area_mask = Utilities.binary_mask.(area_fraction)
     dY.T_sfc .= rhs .* area_mask
