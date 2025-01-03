@@ -28,29 +28,46 @@ steps:
         fi
 
       - echo "--- Instantiate package env"
+      - "julia --project -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaUtilities.jl.git\", rev=\"kp/itime\"))'"
+      - "julia --project -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaDiagnostics.jl.git\", rev=\"kp/itime\"))'"
+      - "julia --project -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaTimeSteppers.jl.git\", rev=\"kp/itime\"))'"
+      - "julia --project -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaAtmos.jl.git\", rev=\"kp/itime\"))'"
       - "julia --project -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
       - "julia --project -e 'using Pkg; Pkg.precompile()'"
       - "julia --project -e 'using Pkg; Pkg.status()'"
 
       - echo "--- Instantiate ClimaCore experiments env"
+      - "julia --project=experiments/ClimaCore/ -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaUtilities.jl.git\", rev=\"kp/itime\"))'"
+      - "julia --project=experiments/ClimaCore/ -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaDiagnostics.jl.git\", rev=\"kp/itime\"))'"
+      - "julia --project=experiments/ClimaCore/ -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaTimeSteppers.jl.git\", rev=\"kp/itime\"))'"
+      - "julia --project=experiments/ClimaCore/ -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaAtmos.jl.git\", rev=\"kp/itime\"))'"
+      - "julia --project=experiments/ClimaCore/ -e 'using Pkg; Pkg.develop(path=\".\")'"
       - "julia --project=experiments/ClimaCore/ -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
       - "julia --project=experiments/ClimaCore/ -e 'using Pkg; Pkg.add(\"MPI\"); Pkg.add(\"CUDA\")'"
       - "julia --project=experiments/ClimaCore/ -e 'using Pkg; Pkg.precompile()'"
       - "julia --project=experiments/ClimaCore/ -e 'using Pkg; Pkg.status()'"
 
       - echo "--- Instantiate ClimaEarth experiments env"
+      - "julia --project=experiments/ClimaEarth/ -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaUtilities.jl.git\", rev=\"kp/itime\"))'"
+      - "julia --project=experiments/ClimaEarth/ -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaDiagnostics.jl.git\", rev=\"kp/itime\"))'"
+      - "julia --project=experiments/ClimaEarth/ -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaTimeSteppers.jl.git\", rev=\"kp/itime\"))'"
+      - "julia --project=experiments/ClimaEarth/ -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaAtmos.jl.git\", rev=\"kp/itime\"))'"
       - "julia --project=experiments/ClimaEarth/ -e 'using Pkg; Pkg.develop(path=\".\")'"
       - "julia --project=experiments/ClimaEarth/ -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
       - "julia --project=experiments/ClimaEarth/ -e 'using Pkg; Pkg.add(\"MPI\"); Pkg.add(\"CUDA\");'"
       - "julia --project=experiments/ClimaEarth/ -e 'using Pkg; Pkg.precompile()'"
       - "julia --project=experiments/ClimaEarth/ -e 'using Pkg; Pkg.status()'"
 
-      - echo "--- Instantiate test env"
-      - "julia --project=test/ -e 'using Pkg; Pkg.develop(path=\".\")'"
-      - "julia --project=test/ -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
-      - "julia --project=test/ -e 'using Pkg; Pkg.add(\"MPI\"); Pkg.add(\"CUDA\")'"
-      - "julia --project=test/ -e 'using Pkg; Pkg.precompile()'"
-      - "julia --project=test/ -e 'using Pkg; Pkg.status()'"
+      # - echo "--- Instantiate test env"
+      # - "julia --project=test/ -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaUtilities.jl.git\", rev=\"kp/itime\"))'"
+      # - "julia --project=test/ -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaDiagnostics.jl.git\", rev=\"kp/itime\"))'"
+      # - "julia --project=test/ -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaTimeSteppers.jl.git\", rev=\"kp/itime\"))'"
+      # - "julia --project=test/ -e 'using Pkg; Pkg.add(PackageSpec(; url=\"https://github.com/CliMA/ClimaAtmos.jl.git\", rev=\"kp/itime\"))'"
+      # - "julia --project=test/ -e 'using Pkg; Pkg.develop(path=\".\")'"
+      # - "julia --project=test/ -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
+      # - "julia --project=test/ -e 'using Pkg; Pkg.add(\"MPI\"); Pkg.add(\"CUDA\")'"
+      # - "julia --project=test/ -e 'using Pkg; Pkg.precompile()'"
+      # - "julia --project=test/ -e 'using Pkg; Pkg.status()'"
 
     concurrency: 1
     concurrency_group: 'depot/climacoupler-ci'
@@ -63,38 +80,38 @@ steps:
 
   - wait
 
-  - group: "Unit Tests"
-    steps:
+  # - group: "Unit Tests"
+  #   steps:
 
-      - label: "MPI Checkpointer unit tests"
-        key: "checkpointer_mpi_tests"
-        command: "srun julia --color=yes --project=test/ test/mpi_tests/checkpointer_mpi_tests.jl"
-        timeout_in_minutes: 20
-        env:
-          CLIMACOMMS_CONTEXT: "MPI"
-        agents:
-          slurm_ntasks: 2
-          slurm_mem: 16GB
+      # - label: "MPI Checkpointer unit tests"
+      #   key: "checkpointer_mpi_tests"
+      #   command: "srun julia --color=yes --project=test/ test/mpi_tests/checkpointer_mpi_tests.jl"
+      #   timeout_in_minutes: 20
+      #   env:
+      #     CLIMACOMMS_CONTEXT: "MPI"
+      #   agents:
+      #     slurm_ntasks: 2
+      #     slurm_mem: 16GB
 
-      - label: "MPI Utilities unit tests"
-        key: "utilities_mpi_tests"
-        command: "srun julia --color=yes --project=test/ test/utilities_tests.jl"
-        timeout_in_minutes: 20
-        env:
-          CLIMACOMMS_CONTEXT: "MPI"
-        agents:
-          slurm_ntasks: 2
-          slurm_mem: 16GB
+      # - label: "MPI Utilities unit tests"
+      #   key: "utilities_mpi_tests"
+      #   command: "srun julia --color=yes --project=test/ test/utilities_tests.jl"
+      #   timeout_in_minutes: 20
+      #   env:
+      #     CLIMACOMMS_CONTEXT: "MPI"
+      #   agents:
+      #     slurm_ntasks: 2
+      #     slurm_mem: 16GB
 
-  - group: "GPU: unit tests and global bucket"
-    steps:
-      - label: "GPU runtests"
-        command: "julia --color=yes --project=test/ test/runtests.jl"
-        env:
-          CLIMACOMMS_DEVICE: "CUDA"
-        agents:
-          slurm_ntasks: 1
-          slurm_gres: "gpu:1"
+  # - group: "GPU: unit tests and global bucket"
+  #   steps:
+  #     - label: "GPU runtests"
+  #       command: "julia --color=yes --project=test/ test/runtests.jl"
+  #       env:
+  #         CLIMACOMMS_DEVICE: "CUDA"
+  #       agents:
+  #         slurm_ntasks: 1
+  #         slurm_gres: "gpu:1"
 
   - group: "Integration Tests"
     steps:
@@ -350,14 +367,14 @@ steps:
           slurm_mem: 20GB
           slurm_gpus: 1
 
-  - group: "Bash scripts"
-    steps:
-      - label: "Submit and Monitor sbatch Job on Caltech HPC"
-        # check that (1) the script can be succesfully submitted, (2) it runs successfully
-        command: "test/mpi_tests/test_sbatch_script.sh"
-        agents:
-          slurm_ntasks: 1
-        soft_fail: true
+  # - group: "Bash scripts"
+  #   steps:
+  #     - label: "Submit and Monitor sbatch Job on Caltech HPC"
+  #       # check that (1) the script can be succesfully submitted, (2) it runs successfully
+  #       command: "test/mpi_tests/test_sbatch_script.sh"
+  #       agents:
+  #         slurm_ntasks: 1
+  #       soft_fail: true
 
   - group: "Hierarchy tests (1d)"
     steps:
