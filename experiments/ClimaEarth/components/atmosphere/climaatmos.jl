@@ -141,7 +141,7 @@ function Interfacer.get_field(atmos_sim::ClimaAtmosSimulation, ::Val{:energy})
         ᶜS_ρq_tot = p.precipitation.ᶜS_ρq_tot
         thermo_params = get_thermo_params(atmos_sim)
         return integrator.u.c.ρe_tot .-
-               ᶜS_ρq_tot .* CA.e_tot_0M_precipitation_sources_helper.(Ref(thermo_params), ᶜts, ᶜΦ) .* float(integrator.dt)
+               ᶜS_ρq_tot .* CA.e_tot_0M_precipitation_sources_helper.(Ref(thermo_params), ᶜts, ᶜΦ) .* eltype(ᶜΦ)(float(integrator.dt))
     else
         return integrator.u.c.ρe_tot
     end
