@@ -30,6 +30,8 @@ import ClimaCoupler: Checkpointer, FieldExchanger, Interfacer, TimeManager, Util
 # TODO: Move to ClimaUtilities once we move the Schedules to ClimaUtilities
 import ClimaDiagnostics.Schedules: EveryCalendarDtSchedule
 
+import ClimaUtilities.TimeManager: ITime
+
 pkg_dir = pkgdir(ClimaCoupler)
 
 #=
@@ -54,7 +56,7 @@ restart_t = Int(0)
 ## coupler simulation specific configuration
 Δt_cpl = Float64(400)
 t_end = "1000days"
-tspan = (Float64(0.0), Float64(Utilities.time_to_seconds(t_end)))
+tspan = (ITime(0.0, epoch = DateTime(1979, 3, 1)), ITime(Utilities.time_to_seconds(t_end)))
 start_date = "19790301"
 checkpoint_dt = "480hours"
 
@@ -187,7 +189,7 @@ cs = Interfacer.CoupledSimulation{FT}(
     coupler_fields,
     nothing, # conservation checks
     [tspan[1], tspan[2]],
-    Δt_cpl,
+    ITime(Δt_cpl),
     model_sims,
     (;), # mode_specifics
     callbacks,

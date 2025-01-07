@@ -33,6 +33,8 @@ import Interpolations # triggers InterpolationsExt in ClimaUtilities
 # TODO: Move to ClimaUtilities once we move the Schedules to ClimaUtilities
 import ClimaDiagnostics.Schedules: EveryCalendarDtSchedule
 
+import ClimaUtilities.TimeManager: ITime
+
 pkg_dir = pkgdir(ClimaCoupler)
 
 #=
@@ -58,7 +60,7 @@ restart_t = Int(0)
 ## coupler simulation specific configuration
 Δt_cpl = Float64(100)
 t_end = "1000days"
-tspan = (Float64(0.0), Float64(Utilities.time_to_seconds(t_end)))
+tspan = (ITime(0.0, epoch = Dates.DateTime(1979, 3, 1)), ITime(Utilities.time_to_seconds(t_end)))
 start_date = "19790321"
 checkpoint_dt = "20days"
 dt_rad = "6hours"
@@ -200,7 +202,7 @@ land_area_fraction = SpaceVaryingInput(land_mask_data, "landsea", boundary_space
 ### Surface Model: Bucket Land and Slab Ocean
 =#
 
-saveat = Float64(Utilities.time_to_seconds(config_dict["dt_save_to_sol"]))
+saveat = ITime(Float64(Utilities.time_to_seconds(config_dict["dt_save_to_sol"])))
 
 ## land model
 land_sim = bucket_init(
@@ -211,7 +213,7 @@ land_sim = bucket_init(
     land_initial_condition,
     "aquaplanet",
     land_output_dir;
-    dt = Δt_cpl,
+    dt = ITime(Δt_cpl),
     space = boundary_space,
     saveat = saveat,
     area_fraction = land_area_fraction,
@@ -225,7 +227,7 @@ land_sim = bucket_init(
 ocean_sim = ocean_init(
     FT;
     tspan = tspan,
-    dt = Δt_cpl,
+    dt = ITime(Δt_cpl),
     space = boundary_space,
     saveat = saveat,
     area_fraction = ones(boundary_space),
@@ -298,7 +300,7 @@ cs = Interfacer.CoupledSimulation{FT}(
     coupler_fields,
     nothing, # conservation checks
     [tspan[1], tspan[2]],
-    Δt_cpl,
+    ITime(Δt_cpl),
     model_sims,
     (;), # mode_specifics
     callbacks,
@@ -331,7 +333,7 @@ FieldExchanger.import_atmos_fields!(cs.fields, cs.model_sims, cs.boundary_space,
 FieldExchanger.update_model_sims!(cs.model_sims, cs.fields, cs.turbulent_fluxes)
 
 # 2.surface vapor specific humidity (`q_sfc`): step surface models with the new surface density to calculate their respective `q_sfc` internally
-Interfacer.step!(ocean_sim, Δt_cpl)
+Interfacer.step!(ocean_sim, ITime(Δt_cpl))
 
 # 3.turbulent fluxes
 ## import the new surface properties into the coupler (note the atmos state was also imported in step 3.)
