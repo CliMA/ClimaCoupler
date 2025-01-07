@@ -55,8 +55,8 @@ restart_t = Int(0)
 ## coupler simulation specific configuration
 Δt_cpl = Float64(400)
 t_end = "1000days"
-tspan = (ITime(0.0, epoch = Dates.DateTime(1979, 3, 1)), ITime(Utilities.time_to_seconds(t_end)))
-start_date = "19790301"
+tspan = (ITime(0.0, epoch = Dates.DateTime(1979, 3, 21)), ITime(Utilities.time_to_seconds(t_end)))
+start_date = "19790321"
 dt_rad = "6hours"
 checkpoint_dt = "480hours"
 
