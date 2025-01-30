@@ -188,10 +188,14 @@ Interfacer.get_field(sim::ClimaAtmosSimulation, ::Val{:thermo_state_int}) =
 Interfacer.get_field(atmos_sim::ClimaAtmosSimulation, ::Val{:water}) =
     ρq_tot(atmos_sim.integrator.p.atmos.moisture_model, atmos_sim.integrator)
 function Interfacer.update_field!(sim::ClimaAtmosSimulation, ::Val{:surface_temperature}, csf)
-    # note that this field is also being updated internally by the surface thermo state in ClimaAtmos
-    # if turbulent fluxes are calculated, to ensure consistency. In case the turbulent fluxes are not
-    # calculated, we update the field here.
-    sim.integrator.p.radiation.rrtmgp_model.surface_temperature .= CC.Fields.field2array(csf.T_S)
+    # The rrtmgp_model.surface_temperature field is updated by the RRTMGP callback using the
+    # sfc_conditions.ts, so all we need to do is update sfc_conditions.ts
+    if sim.integrator.p.atmos.moisture_model isa CA.DryModel
+        sim.integrator.p.precomputed.sfc_conditions.ts .= TD.PhaseDry_ρT.(get_thermo_params(sim), csf.ρ_sfc, csf.T_S)
+    else
+        sim.integrator.p.precomputed.sfc_conditions.ts .=
+            TD.PhaseNonEquil_ρTq.(get_thermo_params(sim), csf.ρ_sfc, csf.T_S, TD.PhasePartition.(csf.q_sfc))
+    end
 end
 # extensions required by FluxCalculator (partitioned fluxes)
 Interfacer.get_field(sim::ClimaAtmosSimulation, ::Val{:height_int}) =
@@ -245,6 +249,13 @@ function Interfacer.update_field!(sim::ClimaAtmosSimulation, ::Val{:turbulent_fl
     parent(sim.integrator.p.precomputed.sfc_conditions.ρ_flux_h_tot) .= parent(F_turb_energy) .* parent(surface_normal) # (shf + lhf)
     parent(sim.integrator.p.precomputed.sfc_conditions.ρ_flux_q_tot) .=
         parent(F_turb_moisture) .* parent(surface_normal) # (evap)
+
+    # If available, also Monin-Obukhov quantities
+    if :L_MO in propertynames(fields)
+        parent(sim.integrator.p.precomputed.sfc_conditions.obukhov_length) .= parent(fields.L_MO)
+        parent(sim.integrator.p.precomputed.sfc_conditions.ustar) .= parent(fields.ustar)
+        parent(sim.integrator.p.precomputed.sfc_conditions.buoyancy_flux) .= parent(fields.buoyancy_flux)
+    end
 
     # TODO: see if Atmos can rever to a simpler solution
 end
